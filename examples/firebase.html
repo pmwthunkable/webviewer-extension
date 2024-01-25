@@ -7,8 +7,10 @@
 
     <script>
     const pathToUnsubscribe = {};
+    const pathToChildAddUnsubscribe = {};
     // when we get a message from the app, parse it
     // and then do the action specified by the type
+    // window.testPage = function(message, callback) {
     ThunkableWebviewerExtension.receiveMessage(function(message, callback) {
       try {
         const msgFromApp = JSON.parse(message);
@@ -26,7 +28,7 @@
         } else if (msgFromApp.type === "writeData") {
           const db = window.firebaseDatabase;
           window.firebaseVars.set(window.firebaseVars.ref(db, msgFromApp.path), msgFromApp.data);
-        } else if (msgFromApp.type === "addListener") {
+        } else if (msgFromApp.type === "addSetListener") {
           if (pathToUnsubscribe[msgFromApp.path]) return;
           const db = window.firebaseDatabase;
           const pathRef = window.firebaseVars.ref(db, msgFromApp.path);
@@ -38,6 +40,18 @@
             pathToUnsubscribe[msgFromApp.path]();
             delete pathToUnsubscribe[msgFromApp.path];
           }
+        } else if (msgFromApp.type === "pushData") {
+          const db = window.firebaseDatabase;
+          const postListRef = window.firebaseVars.ref(db, msgFromApp.path);
+          const newPostRef = window.firebaseVars.push(postListRef);
+          window.firebaseVars.set(newPostRef, msgFromApp.data);
+        } else if (msgFromApp.type === "addChildAddedListener") {
+          if (pathToChildAddUnsubscribe[msgFromApp.path]) return;
+          const db = window.firebaseDatabase;
+          const pathRef = window.firebaseVars.ref(db, msgFromApp.path);
+          pathToChildAddUnsubscribe[msgFromApp.path] = window.firebaseVars.onChildAdded(pathRef, (data) => {
+            callback({path: msgFromApp.path, value: data.val(), key: data.key});
+          });
         }
         
       } catch (e) {
@@ -52,7 +66,7 @@
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js';
 
       // Add Firebase products that you want to use
-      import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js';
+      import { getDatabase, ref, set, onValue, push, onChildAdded } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js';
 
       window.firebaseVars = {}
       window.firebaseVars.initializeApp = initializeApp;
@@ -60,6 +74,8 @@
       window.firebaseVars.ref = ref;
       window.firebaseVars.set = set;
       window.firebaseVars.onValue = onValue;
+      window.firebaseVars.push = push;
+      window.firebaseVars.onChildAdded = onChildAdded;
 
       ThunkableWebviewerExtension.postMessage({type: "page loaded"});
 
