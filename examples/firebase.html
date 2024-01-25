@@ -50,7 +50,8 @@
           const db = window.firebaseDatabase;
           const pathRef = window.firebaseVars.ref(db, msgFromApp.path);
           pathToChildAddUnsubscribe[msgFromApp.path] = window.firebaseVars.onChildAdded(pathRef, (data) => {
-            callback({path: msgFromApp.path, value: data.val(), key: data.key});
+            ThunkableWebviewerExtension.postMessage({type: "childAddedToList", path: msgFromApp.path, ...data.val(), key: data.key});
+            // callback({type: "childAddedToList", path: msgFromApp.path, ...data.val(), key: data.key})
           });
         }
         
