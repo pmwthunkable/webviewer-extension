@@ -3,19 +3,30 @@ import { html } from "@codemirror/lang-html";
 
 let editor;
 
+const setupEditor = (initialValue) => {
+  document.body.innerHTML = "";
+  editor = new EditorView({
+    doc: initialValue,
+    extensions: [
+      basicSetup,
+      html(),
+    ],
+    parent: document.body,
+  });
+}
+
 window.ThunkableWebviewerExtension.receiveMessage((message) => {
   try {
     const messageObj = JSON.parse(message);
     if (messageObj.type === "initEditor") {
-      document.body.innerHTML = "";
-      editor = new EditorView({
-        doc: messageObj.initialValue,
-        extensions: [
-          basicSetup,
-          html(),
-        ],
-        parent: document.body,
-      });
+      if (messageObj.value.startsWith('data:text/html,')) {
+        const docContent = messageObj.value.substring('data:text/html,'.length);
+        setupEditor(decodeURIComponent(docContent));
+      } else if (messageObj.value.startsWith('http')) {
+        fetch(messageObj.value).then(fetchResponse => fetchResponse.text().then(text=> setupEditor(text)));
+      } else {
+        setupEditor(messageObj.value);
+      }
     }
   } catch (e) {
     console.error("An error occurred");
@@ -33,7 +44,6 @@ window.ThunkableWebviewerExtension.receiveMessageWithReturnValue((message, callb
   } catch (e) {
     console.error("An error occurred");
   }
-
 });
 
 window.ThunkableWebviewerExtension.postMessage(
