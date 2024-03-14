@@ -46,4 +46,7 @@
       }
     } catch (e) {}
   });
+  ThunkableWebviewerExtension.postMessage(
+    JSON.stringify({ type: "pageLoaded" })
+  );
 </script>
