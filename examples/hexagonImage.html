@@ -1,0 +1,49 @@
+<html>
+  <body style="margin: 0px">
+    <canvas id="canvas"></canvas>
+  </body>
+</html>
+
+<script
+  src="https://thunkable.github.io/webviewer-extension/thunkableWebviewerExtension.js"
+  type="text/javascript"
+></script>
+
+<script type="text/javascript">
+  const updateImage = function (imageUrl) {
+    const canvas = document.getElementById("canvas");
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const image = new Image();
+
+    image.addEventListener("load", function () {
+      ctx.beginPath();
+      ctx.moveTo(window.innerWidth / 2, 0);
+      ctx.lineTo(window.innerWidth, window.innerHeight / 4);
+      ctx.lineTo(window.innerWidth, (window.innerHeight * 3) / 4);
+      ctx.lineTo(window.innerWidth / 2, window.innerHeight);
+      ctx.lineTo(0, (window.innerHeight * 3) / 4);
+      ctx.lineTo(0, window.innerHeight / 4);
+      ctx.closePath();
+
+      // Use the path just created as a clipping path
+      ctx.clip();
+      // Draw anywhere in the image, only inside the clipping path will be drawn
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      // restore so you can draw outside the clipping path again
+      ctx.restore();
+    });
+    image.src = imageUrl;
+  };
+
+  ThunkableWebviewerExtension.receiveMessage(function (message) {
+    try {
+      const msgFromApp = JSON.parse(message);
+      if (msgFromApp.type === "setImage") {
+        updateImage(msgFromApp.imageUrl);
+      }
+    } catch (e) {}
+  });
+</script>
