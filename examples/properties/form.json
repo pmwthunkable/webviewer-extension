@@ -1,0 +1,4 @@
+{
+  "webFrameUrl": "https://pmwthunkable.github.io/webviewer-extension/examples/properties/form.html",
+  "defaultValue": "[{\"name\":\"name\",\"type\":\"text\"},{\"name\":\"password\",\"type\":\"password\"}]"
+}

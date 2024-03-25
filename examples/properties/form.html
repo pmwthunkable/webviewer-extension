@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body>
+  
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"/>
+  
+  
+  <!-- Latest Sortable -->
+  <script src="https://raw.githack.com/SortableJS/Sortable/master/Sortable.js"></script>
+  
+  
+  <!-- List with handle -->
+  <ul id="listWithHandle" style="padding-left: 0px;"></ul>
+
+  <button onclick="addListElement()">Add Element</button>  
+</body>
+<script>
+  let componentId;
+  let property;
+  window.addEventListener('message', (event) => {
+    console.log('from event listener', event.data)
+    try {
+      const msgFromApp = JSON.parse(event.data);
+      if (msgFromApp.type === "initializeProperty") {
+        componentId = msgFromApp.componentId;
+        property = msgFromApp.property;
+        const formData = JSON.parse(msgFromApp.value);//[{name: 'name', type: 'text'}, {name: 'password', type: 'password'} ]
+        const listElemsString = formData.map(formItemData => getElementText(formItemData.name, formItemData.type)).join(' ')
+        document.getElementById('listWithHandle').insertAdjacentHTML( 'beforeend', listElemsString );
+      }
+    } catch (e) {
+
+    }
+  });
+  const getElementText = (name, type) => `
+    <li class="list-group-item">
+      <div style="display:flex">  
+        <span class="glyphicon glyphicon-move my-handle" aria-hidden="true"></span>
+        <div style="margin-left:10px">
+          <div style="margin-bottom: 5px;">Field name <input class="nameInput" type="text" value="${name}" onblur="sendData()" /></div>
+          <div>Field type 
+            <select class="typeInput" onchange="sendData()">
+              <option value="text" ${type === 'text' ? 'selected' : ''}>Text</option>
+              <option value="password" ${type === 'password' ? 'selected' : ''}>Password</option>
+              <option value="multiline" ${type === 'multiline' ? 'selected' : ''}>Multiline</option>
+            </select>
+          </div>
+          <button class="deleteButton" onclick="onDelete(this)">Delete</button>
+        </div>
+      </div>
+    </li>
+  `;
+  addListElement = () => {
+    document.getElementById('listWithHandle').insertAdjacentHTML( 'beforeend', getElementText('new', 'text') );
+    sendData();
+  }
+
+  // List with handle
+  Sortable.create(listWithHandle, {
+    handle: '.my-handle',
+    animation: 150,
+    onEnd: () => {
+      sendData()
+    }
+  });
+
+  constructFormDataFromDom = () => {
+    return Array.from(document.getElementsByClassName("list-group-item")).map(listGroupItem => (
+      {
+        name: listGroupItem.getElementsByClassName('nameInput')[0].value,
+        type: listGroupItem.getElementsByClassName('typeInput')[0].value,
+      }
+    ));
+  }
+
+  onDelete = function(deleteButton) {
+    Array.from(document.getElementsByClassName("list-group-item")).forEach(listGroupItem => {
+      if (listGroupItem.getElementsByClassName('deleteButton')[0] === deleteButton) {
+        listGroupItem.remove();
+      }
+    });
+    sendData()
+  }
+
+  sendData = () => {
+    window.parent.postMessage(JSON.stringify({type: 'updatePropertyValue', componentId, property, value: JSON.stringify(constructFormDataFromDom())}), '*');
+  }
+
+</script>
+</html>
