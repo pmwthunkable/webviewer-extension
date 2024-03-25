@@ -1,0 +1,16 @@
+<script src="https://thunkable.github.io/webviewer-extension/thunkableWebviewerExtension.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+  ThunkableWebviewerExtension.receiveMessageWithReturnValue(function(message, callback) {
+    try {
+      const msgFromApp = JSON.parse(message);
+      if (msgFromApp.type === "isValidEmail") {
+        callback(String(!!msgFromApp.string.match(RegExp('^([a-z0-9_\\.\\+-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,6})$'))))
+      } else if (msgFromApp.type === "isANumber") {
+        callback(String(!!msgFromApp.string.match(RegExp('^[-]?[0-9]+[,.]?[0-9]*([\\/][0-9]+[,.]?[0-9]*)*$'))))
+      } else if (msgFromApp.type === "matches") {
+        callback(String(!!msgFromApp.string.match(RegExp(msgFromApp.regexPattern))))
+      }
+    } catch (e) {}
+  });
+</script>
