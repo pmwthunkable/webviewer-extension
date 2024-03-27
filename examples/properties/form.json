@@ -1,4 +1,5 @@
 {
   "webFrameUrl": "https://pmwthunkable.github.io/webviewer-extension/examples/properties/form.html",
+  "webFrameDefaultHeight": 300,
   "defaultValue": "[{\"name\":\"name\",\"type\":\"text\"},{\"name\":\"password\",\"type\":\"password\"}]"
 }
