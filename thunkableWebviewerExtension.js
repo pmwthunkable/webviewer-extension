@@ -27,6 +27,36 @@ var ThunkableWebviewerExtension = (function () {
       }
     }
   };
+  let propertyEditorComponentId;
+  let propertyEditorPropertyName;
+  const initializePropertyEditor = (initPropertyCallback) => {
+    window.addEventListener("message", (event) => {
+      try {
+        const msgFromApp = JSON.parse(event.data);
+        if (msgFromApp.type === "initializeProperty") {
+          propertyEditorComponentId = msgFromApp.componentId;
+          propertyEditorPropertyName = msgFromApp.property;
+          initPropertyCallback(msgFromApp.value);
+        }
+      } catch (e) {}
+    });
+  };
+
+  const updatePropertyValue = (propertyValue) => {
+    if (propertyEditorComponentId && propertyEditorPropertyName) {
+      window.parent.postMessage(
+        JSON.stringify({
+          type: "updatePropertyValue",
+          componentId: propertyEditorComponentId,
+          property: propertyEditorPropertyName,
+          value: String(propertyValue),
+        }),
+        "*"
+      );
+    } else {
+      throw "Property editor not initialized";
+    }
+  };
 
   return {
     postMessage: postMessageToWebview,
@@ -40,5 +70,7 @@ var ThunkableWebviewerExtension = (function () {
       document.addEventListener('message', callbackFunction, false);
       window.addEventListener('message', callbackFunction, false);
     },
+    initializePropertyEditor,
+    updatePropertyValue,
   };
 })();
